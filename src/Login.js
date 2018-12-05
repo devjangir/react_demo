@@ -61,9 +61,15 @@ class Login extends Component {
                     } else {
                         console.log("user not found")
                         alert("user not found")
+                        this.setState({
+                            isLoading: false
+                        })
                     }
                 } else {
                     alert("user not found")
+                    this.setState({
+                        isLoading: false
+                    })
                 }
             })
         .catch(error => this.setState({ error, isLoading: false }));

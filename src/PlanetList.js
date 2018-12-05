@@ -12,7 +12,6 @@ export default class PlanetList extends Component {
             activePlanet:""
         }
     }
-
     componentDidMount() {
         fetch("https://swapi.co/api/planets/")
             .then(response => response.json())
