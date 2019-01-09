@@ -2,6 +2,7 @@ import React, { Component } from "react";
 import Header from './Header';
 import Modal from 'react-responsive-modal';
 export default class PlanetList extends Component {
+    abortController = new window.AbortController();
     constructor() {
         super();
         this.state = {
@@ -9,11 +10,32 @@ export default class PlanetList extends Component {
             filterList: [],
             maxValue:0,
             open: false,
-            activePlanet:""
+            activePlanet:"",
+            nextPage:"",
+            searchCount: 0,
+            searchDate:0
         }
     }
     componentDidMount() {
-        fetch("https://swapi.co/api/planets/")
+        //this.removeLocalStorage()
+        console.log("username " + localStorage.getItem('starwar_user'));
+                        
+        this.callAPI("https://swapi.co/api/planets/")
+    }
+    loadMorePlanet = () => {
+        this.callAPI(this.state.nextPage)
+    }
+    callAPI = (url) => {
+        console.log("data " + Date.now());
+        this.setState({
+            isLoading:true
+        });
+        console.log(url)
+        this.abortController = new window.AbortController();
+        fetch(url, {
+            method: 'get',
+            signal: this.abortController.signal,
+        })
             .then(response => response.json())
             .then(data => {
                 const maxValue = Math.max(...data.results.map((planet) => {
@@ -23,8 +45,15 @@ export default class PlanetList extends Component {
                     } 
                     return 0
                 }))
-                this.setState({ planets: data.results, filterList: data.results, maxValue: maxValue, isLoading: false })
-                console.log("float arrry ", maxValue)
+                var planets = this.state.planets
+                planets = planets.concat(data.results)
+                console.log("state data")
+                console.log(this.state.planets)
+                console.log("response data")
+                console.log(data.results)
+                console.log("final data")
+                console.log(planets)
+                this.setState({ planets: planets, filterList: planets, maxValue: maxValue, isLoading: false, nextPage: data.next })
             })
             .catch(error => this.setState({ error, isLoading: false }));
     }
@@ -39,27 +68,61 @@ export default class PlanetList extends Component {
             activePlanet: planet
         })
     }
-
     onCloseModal = () => {
         this.setState({ open: false });
     };
+    removeLocalStorage = () => {
+        localStorage.removeItem('searchDate');
+        localStorage.removeItem('searchCount');
+    }
+    setStateToLocalStorage = () => {
+        localStorage.setItem('searchDate', Date.now()/1000);
+        localStorage.setItem('searchCount', 1);
+    }
     filterResult = (searchText) => {
-        if (searchText.length != 0) {
-            let newFilterData = this.state.planets.filter((item) => {
-                return (item.name.toLowerCase().indexOf(searchText.toLowerCase()) > -1)
-            })
-            this.setState({
-                filterList : newFilterData
-            })
-        } else {
-            this.setState({
-                filterList : this.state.planets
-            })  
+        this.abortController.abort();
+        let username = localStorage.getItem('starwar_user').replace(/(^\")|("$)/gi, "")
+        if(username !== "luke skywalker") {
+            let searchCount = this.state.searchCount
+            let storeSearchCount = localStorage.getItem('searchCount')
+            console.log("search count = " + searchCount + " local storage " + storeSearchCount);
+            if(storeSearchCount === null) {
+                storeSearchCount = 1
+                this.setStateToLocalStorage()            
+            }
+            storeSearchCount = parseInt(storeSearchCount)
+            if(storeSearchCount >= 5) {
+                let searchTime = parseInt(localStorage.getItem('searchDate'))
+                let endDate = Date.now() / 1000
+                if((endDate - searchTime) <= 60) {
+                    alert("You cannot search more than 5 in 1 Minutes");
+                    return
+                } else {
+                    this.setStateToLocalStorage()
+                }
+            }
+            localStorage.setItem('searchCount', storeSearchCount + 1);
         }
+        this.setState({
+            planets: [], filterList: []
+        })
+        this.callAPI("https://swapi.co/api/planets/?search="+searchText);
+        // if (searchText.length != 0) {
+        //     let newFilterData = this.state.planets.filter((item) => {
+        //         return (item.name.toLowerCase().indexOf(searchText.toLowerCase()) > -1)
+        //     })
+        //     this.setState({
+        //         filterList : newFilterData
+        //     })
+        // } else {
+        //     this.setState({
+        //         filterList : this.state.planets
+        //     })  
+        // }
     }
     
     render() {
-        const { open } = this.state;
+        const { open, nextPage } = this.state;
         return (
             <div style={containerStyle}>
                 <Header />
@@ -107,16 +170,22 @@ export default class PlanetList extends Component {
                             </div>
                         </Modal>
                     </div>
-                    <div style={{marginTop:60, marginBottom: 60}}>
+                    <div style={{marginTop:60, marginBottom: 30}}>
                         {
                             this.state.filterList.map((planet) => {
                                 return (
                                     <div value={planet} onClick={() => this.onClickPlanet(planet)}>
                                         <Filler maxValue={this.state.maxValue} planet={planet} />
+                                        
                                     </div>
+                                    
                                 )
                             })
+                            
                         }
+                    </div>
+                    <div style={{display: `${!nextPage?'none':'block'}`}} onClick={() => this.loadMorePlanet()}>
+                        <p  style={{backgroundColor:'yellow', width:'10%', fontWeight:600}}>Load More...</p>
                     </div>
                 </div>
             </div>

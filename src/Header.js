@@ -6,6 +6,8 @@ export default class Header extends Component {
         toDashboard: false,
       }
     logout = () => {
+        localStorage.removeItem('searchDate');
+        localStorage.removeItem('searchCount');
         localStorage.removeItem('starwar_user');
         this.setState({
             toDashboard: true
@@ -18,7 +20,7 @@ export default class Header extends Component {
         return (
         <div style={headerStyle}>
             <div style={subHeaderStyle}>
-                <div style={{display: 'inline-block', width:'90%', color:'white', fontSize:24}}><label>username</label>
+                <div style={{display: 'inline-block', width:'90%', color:'white', fontSize:24}}><label>Welcome <span style={{color:'yellow'}}>{localStorage.getItem('starwar_user').replace(/(^\")|("$)/gi, "") }</span></label>
                 </div>
                 <div style={{display: 'inline-block'}}>
                     <button style={buttonStyle} onClick={this.logout}>Logout</button>
