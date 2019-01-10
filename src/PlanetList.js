@@ -91,7 +91,7 @@ export default class PlanetList extends Component {
                 this.setStateToLocalStorage()            
             }
             storeSearchCount = parseInt(storeSearchCount)
-            if(storeSearchCount >= 5) {
+            if(storeSearchCount > 5) {
                 let searchTime = parseInt(localStorage.getItem('searchDate'))
                 let endDate = Date.now() / 1000
                 if((endDate - searchTime) <= 60) {

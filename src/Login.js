@@ -30,33 +30,37 @@ class Login extends Component {
     onSubmit = ({formData}) => {
         console.log("Data submitted: ",  formData);
         this.setState({
-            username : formData.username,
-            password : formData.password,
+            username : formData.username.toLowerCase(),
+            password : formData.password.toLowerCase(),
             isLoggedIn: false,
             isLoading: false
         })
-        this.login()
+        this.login(formData.username.toLowerCase(),formData.password.toLowerCase())
     }
     isValidUser = () => {
 
     }
-    login = () => {
+    login = (_username, _password) => {
         this.setState({
             isLoading: true
         })
-        fetch("https://swapi.co/api/people/?search=" + this.state.username)
+        console.log("state username = " + this.state.username);
+        console.log("function username = " + _username + " - "+_password);
+        fetch("https://swapi.co/api/people/?search=" + _username)
         .then(response => response.json())
         .then(data => {
                 if (data.results.length > 0) {
                     const username = data.results[0].name.toLowerCase()
                     const password = data.results[0].birth_year.toLowerCase()
                     console.log("user "+username+": password :"+password)
-                    if ((username == this.state.username) && (password == this.state.password)) {
+                    if ((username === _username) && (password === _password)) {
                         console.log("user found");
                         localStorage.setItem('starwar_user', JSON.stringify(username));
                         this.setState({
                             isLoggedIn: true,
-                            isLoading: false
+                            isLoading: false,
+                            username: _username,
+                            password: _password
                         })
                     } else {
                         console.log("user not found")
