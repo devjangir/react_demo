@@ -5,6 +5,8 @@ import './App.css';
 import Login from './Login';
 import PlanetList from './PlanetList';
 import PrivateRoute from './PrivateRoute';
+import LoginRoute from './LoginRouter';
+
 class App extends Component {
   render() {
     return (
@@ -13,7 +15,7 @@ class App extends Component {
             <Switch>
             {/* A user can't go to the HomePage if is not authenticated */}
             <PrivateRoute path="/" component={PlanetList} exact />
-            <Route path="/login" component={Login} />
+            <LoginRoute path="/login" component={Login} />
           </Switch>
         </div>
       </Router>
